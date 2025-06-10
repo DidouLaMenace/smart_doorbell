@@ -1,0 +1,83 @@
+import time
+import board
+import busio
+import RPi.GPIO as GPIO
+
+# --- Librairies pour le CAN ADS1115 ---
+import adafruit_ads1x15.ads1115 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
+
+# ------------------------------------------------------------------------
+# CONFIGURATION MATÉRIELLE
+# ------------------------------------------------------------------------
+GPIO.setmode(GPIO.BCM)
+
+# 🎛️ Bouton DFR0029 (GPIO 17) avec pull-up interne
+BOUTON_PIN = 17
+GPIO.setup(BOUTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+# 🔊 Speaker FIT0449 (GPIO 27) via PWM
+SPEAKER_PIN = 27
+GPIO.setup(SPEAKER_PIN, GPIO.OUT)
+pwm = GPIO.PWM(SPEAKER_PIN, 440)  # 440 Hz (note La)
+pwm.stop()
+
+# 🔌 Capteurs analogiques via ADS1115 en I2C
+i2c = busio.I2C(board.SCL, board.SDA)
+ads = ADS.ADS1115(i2c)
+
+# Canal A0 pour capteur ultrason, A1 pour capteur sonore
+canal_ultrason = AnalogIn(ads, ADS.P0)
+canal_micro = AnalogIn(ads, ADS.P1)
+
+# ------------------------------------------------------------------------
+# FONCTIONS
+# ------------------------------------------------------------------------
+
+# Fonction pour émettre un "ding dong" simple via PWM
+def jouer_son():
+    print("🔊 Ding dong !")
+    pwm.start(50)  # 50% de duty cycle
+
+    pwm.ChangeFrequency(523)  # Note DO
+    time.sleep(0.2)
+
+    pwm.ChangeFrequency(392)  # Note SOL
+    time.sleep(0.2)
+
+    pwm.stop()
+
+# Vérifie la présence (capteur ultrason)
+def verifier_presence():
+    val = canal_ultrason.voltage
+    if val > 2.0:  # seuil fictif à ajuster
+        print(f"👤 Présence détectée (ultrason = {val:.2f} V)")
+        jouer_son()
+        time.sleep(2)
+
+# Vérifie un bruit (capteur micro)
+def verifier_bruit():
+    val = canal_micro.voltage
+    print(val)
+    time.sleep(2)
+
+# ------------------------------------------------------------------------
+# BOUCLE PRINCIPALE
+# ------------------------------------------------------------------------
+
+print("🔁 Système actif. En attente d'une détection ou d'un appui bouton...")
+
+try:
+    while True:
+        if GPIO.input(BOUTON_PIN) == GPIO.LOW:
+            print("🔘 Bouton pressé")
+            jouer_son()
+            time.sleep(1)
+
+        #verifier_presence()
+        verifier_bruit()
+        time.sleep(0.2)
+
+except KeyboardInterrupt:
+    print("🛑 Interruption manuelle reçue. Nettoyage GPIO...")
+    GPIO.cleanup()
