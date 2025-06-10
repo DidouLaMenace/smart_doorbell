@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Doorbell Dashboard</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #eee; }
+        .notification { padding: 10px; background-color: #def; border: 1px solid #aaa; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🔔 Dashboard de la Sonnette Connectée</h1>
+    <div id="notifications" class="notification">Dernier événement : Aucun</div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Type d'événement</th>
+                <th>Horodatage</th>
+            </tr>
+        </thead>
+        <tbody id="events-table"></tbody>
+    </table>
+
+    <script>
+        async function refreshEvents() {
+            const res = await fetch("/events");
+            const data = await res.json();
+
+            const table = document.getElementById("events-table");
+            table.innerHTML = "";
+
+            if (data.length > 0) {
+                document.getElementById("notifications").textContent =
+                    "Dernier événement : " + data[0].event_type + " à " + data[0].timestamp;
+            }
+
+            data.forEach(event => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${event.id}</td><td>${event.event_type}</td><td>${event.timestamp}</td>`;
+                table.appendChild(row);
+            });
+        }
+
+        // Rafraîchissement toutes les 3 secondes
+        setInterval(refreshEvents, 3000);
+        refreshEvents();
+    </script>
+</body>
+</html>
