@@ -1,7 +1,7 @@
 from shared import canal_ultrason
-import time
 
 def detects_ultra():
-    val = int((canal_ultrason.voltage / 3.3) * 1023)
-    distance = val * 520 / 1023  # conversion à ajuster selon ton capteur
+    voltage = canal_ultrason.voltage 
+    VCC = 5.0  # ou 3.3 
+    distance = (voltage / VCC) * 520
     return distance
