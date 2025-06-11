@@ -10,6 +10,7 @@ from sensors import sound_sensor, button, ultrasonic_sensor
 from actuators import speaker
 
 BACKEND_URL = "http://localhost:5000/event"
+COOLDOWN_DURATION = 30  # secondes
 
 def send_event(event_type):
     try:
@@ -23,10 +24,12 @@ def key_pressed():
 
 print("Système actif. En attente d'une détection ou d'un appui bouton...")
 
-# Met le terminal en mode raw pour capter les touches
 fd = sys.stdin.fileno()
 old_settings = termios.tcgetattr(fd)
 tty.setcbreak(fd)
+
+last_detection_time = 0  # Temps de la dernière détection
+detection_active = True  # État de détection autorisée
 
 try:
     while True:
@@ -35,36 +38,40 @@ try:
                 print("Demande d'arrêt du programme.")
                 break
 
-        try:
-            if button.is_pressed():
-                print("Bouton pressé")
-                #speaker.play_beep()
-                send_event("button")
-        except Exception as e:
-            print(f"[ERROR] Bouton : {e}")
+        current_time = time.time()
+
+        # Si cooldown passé, on réarme la détection
+        if not detection_active and current_time - last_detection_time >= COOLDOWN_DURATION:
+            print("✅ Fenêtre de détection réactivée.")
+            detection_active = True
 
         try:
-            distance = ultrasonic_sensor.detects_ultra()
-            if distance < 25:
-                print(f"Présence détectée (distance = {distance:.2f} cm)")
-                #speaker.play_beep()
-                send_event("move")
-        except Exception as e:
-            print(f"[ERROR] Ultrason : {e}")
+            event_triggered = False
 
-        try:
-            if sound_sensor.detect_sound():
-                print("Bruit détecté")
-                #speaker.play_beep()
-                send_event("sound")
+            if detection_active:
+                if button.is_pressed():
+                    print("🔘 Bouton pressé")
+                    event_triggered = "button"
+
+                distance = ultrasonic_sensor.detects_ultra()
+                if distance < 25:
+                    print(f"📏 Présence détectée (distance = {distance:.2f} cm)")
+                    event_triggered = "move"
+
+                if sound_sensor.detect_sound():
+                    print("🔊 Bruit détecté")
+                    event_triggered = "sound"
+
+                if event_triggered:
+                    speaker.play_beep()
+                    send_event(event_triggered)
+                    last_detection_time = current_time
+                    detection_active = False  # Désactive les futures détections pendant le cooldown
+
         except Exception as e:
-            print(f"[ERROR] Son : {e}")
+            print(f"[ERROR] Capteur : {e}")
 
         time.sleep(0.2)
-
-# except KeyboardInterrupt:
-#     print("🛑 Arrêt manuel")
-#     GPIO.cleanup()
 
 finally:
     termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
