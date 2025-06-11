@@ -28,8 +28,8 @@ fd = sys.stdin.fileno()
 old_settings = termios.tcgetattr(fd)
 tty.setcbreak(fd)
 
-last_detection_time = 0  # Temps de la dernière détection
-detection_active = True  # État de détection autorisée
+last_activity_time = 0
+already_alerted = False
 
 try:
     while True:
@@ -39,34 +39,36 @@ try:
                 break
 
         current_time = time.time()
-
-        # Si cooldown passé, on réarme la détection
-        if not detection_active and current_time - last_detection_time >= COOLDOWN_DURATION:
-            print("✅ Fenêtre de détection réactivée.")
-            detection_active = True
+        activity_detected = False
+        event_type = None
 
         try:
-            event_triggered = False
+            if button.is_pressed():
+                activity_detected = True
+                event_type = "button"
 
-            if detection_active:
-                if button.is_pressed():
-                    print("🔘 Bouton pressé")
-                    event_triggered = "button"
+            distance = ultrasonic_sensor.detects_ultra()
+            if distance < 25:
+                activity_detected = True
+                event_type = "move"
 
-                distance = ultrasonic_sensor.detects_ultra()
-                if distance < 25:
-                    print(f"📏 Présence détectée (distance = {distance:.2f} cm)")
-                    event_triggered = "move"
+            if sound_sensor.detect_sound():
+                activity_detected = True
+                event_type = "sound"
 
-                if sound_sensor.detect_sound():
-                    print("🔊 Bruit détecté")
-                    event_triggered = "sound"
+            if activity_detected:
+                last_activity_time = current_time
 
-                if event_triggered:
+                if not already_alerted:
+                    print(f"🔔 Événement détecté : {event_type}")
                     speaker.play_beep()
-                    send_event(event_triggered)
-                    last_detection_time = current_time
-                    detection_active = False  # Désactive les futures détections pendant le cooldown
+                    send_event(event_type)
+                    already_alerted = True
+
+            # Si plus aucune activité depuis X secondes, on réarme
+            if already_alerted and (current_time - last_activity_time) > COOLDOWN_DURATION:
+                print("✅ Aucune activité depuis 30 secondes. Réactivation de l'alerte.")
+                already_alerted = False
 
         except Exception as e:
             print(f"[ERROR] Capteur : {e}")
