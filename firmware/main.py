@@ -10,7 +10,7 @@ from sensors import sound_sensor, button, ultrasonic_sensor
 from actuators import speaker
 
 BACKEND_URL = "http://localhost:5000/event"
-COOLDOWN_DURATION = 30  # secondes
+COOLDOWN_DURATION = 15  # secondes
 
 def send_event(event_type):
     try:
@@ -60,14 +60,14 @@ try:
                 last_activity_time = current_time
 
                 if not already_alerted:
-                    print(f"🔔 Événement détecté : {event_type}")
+                    print(f"Événement détecté : {event_type}")
                     speaker.play_beep()
                     send_event(event_type)
                     already_alerted = True
 
             # Si plus aucune activité depuis X secondes, on réarme
             if already_alerted and (current_time - last_activity_time) > COOLDOWN_DURATION:
-                print("✅ Aucune activité depuis 30 secondes. Réactivation de l'alerte.")
+                print("Aucune activité depuis 30 secondes. Réactivation de l'alerte.")
                 already_alerted = False
 
         except Exception as e:
