@@ -38,7 +38,7 @@ try:
         try:
             if button.is_pressed():
                 print("Bouton pressé")
-                speaker.play_beep()
+                #speaker.play_beep()
                 send_event("button")
         except Exception as e:
             print(f"[ERROR] Bouton : {e}")
@@ -47,7 +47,7 @@ try:
             distance = ultrasonic_sensor.detects_ultra()
             if distance < 25:
                 print(f"Présence détectée (distance = {distance:.2f} cm)")
-                speaker.play_beep()
+                #speaker.play_beep()
                 send_event("move")
         except Exception as e:
             print(f"[ERROR] Ultrason : {e}")
@@ -55,7 +55,7 @@ try:
         try:
             if sound_sensor.detect_sound():
                 print("Bruit détecté")
-                speaker.play_beep()
+                #speaker.play_beep()
                 send_event("sound")
         except Exception as e:
             print(f"[ERROR] Son : {e}")
