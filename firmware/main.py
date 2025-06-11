@@ -18,25 +18,25 @@ def send_event(event_type):
     except Exception as e:
         print(f"[ERROR] Échec d'envoi de l'événement '{event_type}': {e}")
 
-def key_pressed():
-    dr, _, _ = select.select([sys.stdin], [], [], 0)
-    return dr != []
+# def key_pressed():
+#     dr, _, _ = select.select([sys.stdin], [], [], 0)
+#     return dr != []
 
 print("Système actif. En attente d'une détection ou d'un appui bouton...")
 
-fd = sys.stdin.fileno()
-old_settings = termios.tcgetattr(fd)
-tty.setcbreak(fd)
+# fd = sys.stdin.fileno()
+# old_settings = termios.tcgetattr(fd)
+# tty.setcbreak(fd)
 
 last_activity_time = 0
 already_alerted = False
 
 try:
     while True:
-        if key_pressed():
-            if sys.stdin.read(1) == "\n":
-                print("Demande d'arrêt du programme.")
-                break
+        # if key_pressed():
+        #     if sys.stdin.read(1) == "\n":
+        #         print("Demande d'arrêt du programme.")
+        #         break
 
         current_time = time.time()
         activity_detected = False
@@ -76,5 +76,5 @@ try:
         time.sleep(0.2)
 
 finally:
-    termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    # termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     GPIO.cleanup()
