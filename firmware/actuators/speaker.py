@@ -29,9 +29,6 @@ def play_beep():
         ('G5', 0.2),
         ('C6', 0.3),
         (None, 0.1),
-        ('G5', 0.2),
-        ('E5', 0.2),
-        ('C5', 0.3)
     ]
 
     for note, duration in melody:
