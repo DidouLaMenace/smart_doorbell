@@ -10,7 +10,7 @@ from sensors import sound_sensor, button, ultrasonic_sensor
 from actuators import speaker
 
 BACKEND_URL = "http://localhost:5000/event"
-COOLDOWN_DURATION = 15  # secondes
+COOLDOWN_DURATION = 5  # secondes
 
 def send_event(event_type):
     try:
