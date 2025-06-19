@@ -16,4 +16,4 @@ def detect_sound():
     baseline = min(samples)  # ou moyenne basse pour bruit de fond
     peak = max(samples)
     variation = peak - baseline
-    return variation > 0.015
+    return variation > 0.016
