@@ -67,7 +67,7 @@ try:
 
             # Si plus aucune activité depuis X secondes, on réarme
             if already_alerted and (current_time - last_activity_time) > COOLDOWN_DURATION:
-                print("Aucune activité depuis 30 secondes. Réactivation de l'alerte.")
+                print("Aucune activité depuis 5 secondes. Réactivation de l'alerte.")
                 already_alerted = False
 
         except Exception as e:
